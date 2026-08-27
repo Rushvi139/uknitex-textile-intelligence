@@ -30,7 +30,7 @@ function Workbench() {
   const [generated, setGenerated] = useState(false);
   const [draft, setDraft] = useState("");
 
-  const p = aiPrompts.find((x) => x.id === active) ?? aiPrompts[0];
+  const p = aiPrompts.find((x) => x.id === active) ?? aiPrompts[0]!;
 
   return (
     <AppShell breadcrumb={["Intelligence", "AI workbench"]}>

@@ -40,7 +40,7 @@ const panes = ["QC info", "Inspection items", "Failed item", "Return / claim"];
 function Quality() {
   const [filter, setFilter] = useState("All");
   const [query, setQuery] = useState("");
-  const [selectedId, setSelectedId] = useState(qcCases[0].id);
+  const [selectedId, setSelectedId] = useState(qcCases[0]!.id);
   const [pane, setPane] = useState(panes[0]);
 
   const rows = useMemo(
@@ -53,7 +53,7 @@ function Quality() {
     [filter, query],
   );
 
-  const c = qcCases.find((x) => x.id === selectedId) ?? qcCases[0];
+  const c = qcCases.find((x) => x.id === selectedId) ?? qcCases[0]!;
 
   return (
     <AppShell breadcrumb={["Operations", "Quality check", c.id]}>

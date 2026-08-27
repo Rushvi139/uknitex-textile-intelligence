@@ -49,7 +49,7 @@ function Inventory() {
   const [tab, setTab] = useState(tabs[0]);
   const [status, setStatus] = useState("All");
   const [query, setQuery] = useState("");
-  const [selected, setSelected] = useState(rolls[0].roll);
+  const [selected, setSelected] = useState(rolls[0]!.roll);
 
   const filtered = useMemo(
     () =>
@@ -61,7 +61,7 @@ function Inventory() {
     [status, query],
   );
 
-  const active = rolls.find((r) => r.roll === selected) ?? rolls[0];
+  const active = rolls.find((r) => r.roll === selected) ?? rolls[0]!;
 
   const summary = [
     { label: "Total stock", value: product.totalRolls, sub: `${product.totalMtrs} mtrs`, tone: "" },
