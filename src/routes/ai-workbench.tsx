@@ -26,7 +26,7 @@ export const Route = createFileRoute("/ai-workbench")({
 });
 
 function Workbench() {
-  const [active, setActive] = useState(aiPrompts[0].id);
+  const [active, setActive] = useState(aiPrompts[0]!.id);
   const [generated, setGenerated] = useState(false);
   const [draft, setDraft] = useState("");
 

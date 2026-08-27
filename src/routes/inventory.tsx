@@ -46,7 +46,7 @@ const tabs = ["Roll inventory", "Stock batches", "Stock movement", "Purchase his
 const statuses = ["All", "Available", "Reserved", "In QC", "Damaged"];
 
 function Inventory() {
-  const [tab, setTab] = useState(tabs[0]);
+  const [tab, setTab] = useState(tabs[0]!);
   const [status, setStatus] = useState("All");
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState(rolls[0]!.roll);

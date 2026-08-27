@@ -41,7 +41,7 @@ function Quality() {
   const [filter, setFilter] = useState("All");
   const [query, setQuery] = useState("");
   const [selectedId, setSelectedId] = useState(qcCases[0]!.id);
-  const [pane, setPane] = useState(panes[0]);
+  const [pane, setPane] = useState(panes[0]!);
 
   const rows = useMemo(
     () =>
@@ -131,7 +131,7 @@ function Quality() {
                         type="button"
                         onClick={() => {
                           setSelectedId(r.id);
-                          setPane(panes[0]);
+                          setPane(panes[0]!);
                         }}
                         className={cn(
                           "flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-surface-sunken",
