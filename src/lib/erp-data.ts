@@ -360,6 +360,16 @@ export const claimCase = {
   ],
 };
 
+export const qcStages = ["Awaiting QC", "In Progress", "Decision Pending", "Passed", "Rejected"] as const;
+
+export const godownFeed = [
+  { time: "09:10", text: "Lot GRN-0006 moved to inspection bay B", by: "Godown · Suresh" },
+  { time: "10:45", text: "18 labels printed for GRN-0008", by: "Godown · Anita" },
+  { time: "12:20", text: "1 roll of GRN-0009 staged at return dock", by: "Godown · Suresh" },
+  { time: "14:05", text: "Rack A-12 freed after issue to Sales Order SO-0042", by: "Godown · Kiran" },
+  { time: "16:30", text: "Pickup slot booked with transporter for return lot", by: "Godown · Anita" },
+];
+
 // ---------- AI workbench ----------
 
 export const aiPrompts = [
