@@ -173,7 +173,11 @@ export function CrmProvider({ children }: { children: ReactNode }) {
         patch(id, (l) => finish(withHistory({ ...l, followUp: date, followUpOverdue: false }, "Follow-up", `Follow-up set for ${date}`))),
       markLost: (id, reason) =>
         patch(id, (l) => ({ ...withHistory({ ...l, lostReason: reason }, "Closed", `Marked lost — ${reason}`), status: "Closed" })),
-      reopen: (id) => patch(id, (l) => finish(withHistory({ ...l, lostReason: undefined }, "Reopened", "Lead reopened"))),
+      reopen: (id) =>
+        patch(id, (l) => {
+          const { lostReason: _dropped, ...rest } = l;
+          return finish(withHistory(rest as typeof l, "Reopened", "Lead reopened"));
+        }),
 
       sendPrice: (leadId, inquiryId) =>
         patch(leadId, (l) => {
