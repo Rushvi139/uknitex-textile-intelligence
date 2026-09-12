@@ -362,7 +362,14 @@ export function CrmProvider({ children }: { children: ReactNode }) {
                   catalogueLinks: kind === "Catalogue link" ? e.catalogueLinks + 1 : e.catalogueLinks,
                   links: [
                     ...e.links,
-                    { id: nextId("LNK"), kind, collection, fair: e.name, expiry: "31 Dec 2026", cap: 250 },
+                    {
+                      id: nextId("LNK"),
+                      kind,
+                      ...(collection ? { collection } : {}),
+                      fair: e.name,
+                      expiry: "31 Dec 2026",
+                      cap: 250,
+                    },
                   ],
                 }
               : e,
