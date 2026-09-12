@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AiWorkbenchRouteImport } from './routes/ai-workbench'
+import { Route as CrmRouteImport } from './routes/crm'
 import { Route as InventoryRouteImport } from './routes/inventory'
 import { Route as ProcurementRouteImport } from './routes/procurement'
 import { Route as QualityRouteImport } from './routes/quality'
@@ -23,6 +24,11 @@ const IndexRoute = IndexRouteImport.update({
 const AiWorkbenchRoute = AiWorkbenchRouteImport.update({
   id: '/ai-workbench',
   path: '/ai-workbench',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CrmRoute = CrmRouteImport.update({
+  id: '/crm',
+  path: '/crm',
   getParentRoute: () => rootRouteImport,
 } as any)
 const InventoryRoute = InventoryRouteImport.update({
@@ -44,6 +50,7 @@ const QualityRoute = QualityRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/ai-workbench': typeof AiWorkbenchRoute
+  '/crm': typeof CrmRoute
   '/inventory': typeof InventoryRoute
   '/procurement': typeof ProcurementRoute
   '/quality': typeof QualityRoute
@@ -51,6 +58,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/ai-workbench': typeof AiWorkbenchRoute
+  '/crm': typeof CrmRoute
   '/inventory': typeof InventoryRoute
   '/procurement': typeof ProcurementRoute
   '/quality': typeof QualityRoute
@@ -59,19 +67,23 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/ai-workbench': typeof AiWorkbenchRoute
+  '/crm': typeof CrmRoute
   '/inventory': typeof InventoryRoute
   '/procurement': typeof ProcurementRoute
   '/quality': typeof QualityRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/ai-workbench' | '/inventory' | '/procurement' | '/quality'
+  fullPaths:
+    '/' | '/ai-workbench' | '/crm' | '/inventory' | '/procurement' | '/quality'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/ai-workbench' | '/inventory' | '/procurement' | '/quality'
+  to:
+    '/' | '/ai-workbench' | '/crm' | '/inventory' | '/procurement' | '/quality'
   id:
     | '__root__'
     | '/'
     | '/ai-workbench'
+    | '/crm'
     | '/inventory'
     | '/procurement'
     | '/quality'
@@ -80,6 +92,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AiWorkbenchRoute: typeof AiWorkbenchRoute
+  CrmRoute: typeof CrmRoute
   InventoryRoute: typeof InventoryRoute
   ProcurementRoute: typeof ProcurementRoute
   QualityRoute: typeof QualityRoute
@@ -99,6 +112,13 @@ declare module '@tanstack/react-router' {
       path: '/ai-workbench'
       fullPath: '/ai-workbench'
       preLoaderRoute: typeof AiWorkbenchRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/crm': {
+      id: '/crm'
+      path: '/crm'
+      fullPath: '/crm'
+      preLoaderRoute: typeof CrmRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/inventory': {
@@ -128,6 +148,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AiWorkbenchRoute: AiWorkbenchRoute,
+  CrmRoute: CrmRoute,
   InventoryRoute: InventoryRoute,
   ProcurementRoute: ProcurementRoute,
   QualityRoute: QualityRoute,
