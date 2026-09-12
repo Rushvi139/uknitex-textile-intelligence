@@ -48,7 +48,7 @@ const groups: { group: string; items: NavItem[] }[] = [
   {
     group: "Commercial",
     items: [
-      { label: "CRM", icon: Users },
+      { label: "CRM", to: "/crm", icon: Users, badge: "11" },
       { label: "Accounts", icon: Receipt },
     ],
   },
