@@ -17,6 +17,7 @@ import {
   ShieldCheck,
   ShoppingCart,
   Sparkles,
+  ClipboardCheck,
   Users,
   Warehouse,
 } from "lucide-react";
@@ -34,7 +35,13 @@ import { cn } from "@/lib/utils";
 type NavItem = { label: string; to?: string; icon: typeof Gauge; badge?: string; ai?: boolean };
 
 const groups: { group: string; items: NavItem[] }[] = [
-  { group: "Overview", items: [{ label: "Executive dashboard", to: "/", icon: Gauge }] },
+  {
+    group: "Overview",
+    items: [
+      { label: "Executive dashboard", to: "/", icon: Gauge },
+      { label: "My desk", to: "/my-desk", icon: ClipboardCheck, badge: "24" },
+    ],
+  },
   {
     group: "Operations",
     items: [
@@ -63,7 +70,7 @@ const groups: { group: string; items: NavItem[] }[] = [
 ];
 
 const paletteCommands = [
-  { group: "Go to", items: ["Executive dashboard", "Purchase orders", "Product detail", "Quality check", "AI workbench"] },
+  { group: "Go to", items: ["Executive dashboard", "My desk", "Purchase orders", "Product detail", "Quality check", "AI workbench"] },
   { group: "Create", items: ["New purchase order", "New sales order", "New GRN", "New QC case"] },
   { group: "Ask AI", items: ["Create delayed PO report", "Stock exposed against confirmed orders", "Supplier follow-up brief"] },
 ];

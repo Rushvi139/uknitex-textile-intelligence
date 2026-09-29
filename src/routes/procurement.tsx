@@ -42,6 +42,8 @@ export const Route = createFileRoute("/procurement")({
         property: "og:description",
         content: "Track supplier commitments, receipts and delivery risk with AI-grounded reorder suggestions.",
       },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: Procurement,
@@ -174,19 +176,20 @@ function Procurement() {
               )}
             </div>
 
-            <div className="flex gap-1 overflow-x-auto border-b border-border pb-px">
+            <div className="grid gap-px overflow-hidden rounded-md border border-border bg-border sm:grid-cols-4 xl:grid-cols-7">
               {tabs.map((t) => (
                 <button
                   key={t.key}
                   onClick={() => setTab(t.key)}
                   className={cn(
-                    "-mb-px whitespace-nowrap border-b-2 px-3 py-2 text-[13px] font-medium transition-colors",
+                    "grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-2 bg-surface px-3 py-2.5 text-left text-[12px] font-medium transition-colors",
                     tab === t.key
-                      ? "border-primary text-foreground"
-                      : "border-transparent text-muted-foreground hover:text-foreground",
+                      ? "bg-primary text-primary-foreground"
+                      : "text-muted-foreground hover:bg-surface-sunken hover:text-foreground",
                   )}
                 >
-                  {t.key} <span className="num text-[11px] opacity-70">({t.count})</span>
+                  <span className="truncate">{t.key}</span>
+                  <span className={cn("num rounded-sm px-1.5 py-0.5 text-[10px]", tab === t.key ? "bg-primary-foreground/15" : "bg-surface-sunken")}>{t.count}</span>
                 </button>
               ))}
             </div>

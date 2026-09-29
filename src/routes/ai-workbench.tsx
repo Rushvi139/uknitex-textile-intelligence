@@ -20,6 +20,8 @@ export const Route = createFileRoute("/ai-workbench")({
         property: "og:description",
         content: "Turn ledgers into management reports and tasks, with sources shown before anything is generated.",
       },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: Workbench,
