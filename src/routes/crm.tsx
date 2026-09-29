@@ -242,6 +242,7 @@ function Board({ leads }: { leads: Lead[] }) {
                 {items.map((l) => {
                   const stale = l.daysInColumn > col.ageLimit;
                   const openInq = l.inquiries.filter((i) => i.open);
+                  const firstOpenInquiry = openInq[0];
                   return (
                     <article
                       key={l.id}
@@ -299,11 +300,11 @@ function Board({ leads }: { leads: Lead[] }) {
 
                       <div className="mt-2.5 flex flex-wrap gap-1.5 border-t border-border pt-2.5">
                         <MiniAction onClick={() => crm.logTouch(l.id, "Called from the board")}>Log call</MiniAction>
-                        {openInq[0] && !openInq[0].priceSentOn && (
-                          <MiniAction onClick={() => crm.sendPrice(l.id, openInq[0]!.id)}>Send price</MiniAction>
+                        {firstOpenInquiry && !firstOpenInquiry.priceSentOn && (
+                          <MiniAction onClick={() => crm.sendPrice(l.id, firstOpenInquiry.id)}>Send price</MiniAction>
                         )}
-                        {openInq[0]?.priceSentOn && !l.quotations.length && (
-                          <MiniAction onClick={() => crm.raiseQuotation(l.id, openInq[0]!.id)}>Quotation</MiniAction>
+                        {firstOpenInquiry?.priceSentOn && !l.quotations.length && (
+                          <MiniAction onClick={() => crm.raiseQuotation(l.id, firstOpenInquiry.id)}>Quotation</MiniAction>
                         )}
                         <MiniAction onClick={() => crm.setFollowUp(l.id, "15 Sep 2026")}>Follow-up</MiniAction>
                       </div>
