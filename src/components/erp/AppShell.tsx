@@ -55,6 +55,7 @@ const groups: { group: string; items: NavItem[] }[] = [
   {
     group: "Commercial",
     items: [
+      { label: "Sourcing", to: "/sourcing", icon: Factory },
       { label: "CRM", to: "/crm", icon: Users, badge: "11" },
       { label: "Accounts", icon: Receipt },
     ],
@@ -85,7 +86,7 @@ function NavList({ onNavigate }: { onNavigate?: () => void }) {
           <p className="label-caps px-2 pb-1.5">{g.group}</p>
           <ul className="space-y-0.5">
             {g.items.map((item) => {
-              const active = item.to === pathname;
+              const active = item.to === pathname || (item.to === "/sourcing" && pathname.startsWith("/sourcing/"));
               const inner = (
                 <>
                   <item.icon

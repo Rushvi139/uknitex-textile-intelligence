@@ -16,6 +16,9 @@ import { Route as InventoryRouteImport } from './routes/inventory'
 import { Route as MyDeskRouteImport } from './routes/my-desk'
 import { Route as ProcurementRouteImport } from './routes/procurement'
 import { Route as QualityRouteImport } from './routes/quality'
+import { Route as SourcingRouteImport } from './routes/sourcing'
+import { Route as SourcingIndexRouteImport } from './routes/sourcing.index'
+import { Route as SourcingDevelopmentsRouteImport } from './routes/sourcing.developments'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -52,6 +55,21 @@ const QualityRoute = QualityRouteImport.update({
   path: '/quality',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SourcingRoute = SourcingRouteImport.update({
+  id: '/sourcing',
+  path: '/sourcing',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SourcingIndexRoute = SourcingIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => SourcingRoute,
+} as any)
+const SourcingDevelopmentsRoute = SourcingDevelopmentsRouteImport.update({
+  id: '/developments',
+  path: '/developments',
+  getParentRoute: () => SourcingRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -61,6 +79,9 @@ export interface FileRoutesByFullPath {
   '/my-desk': typeof MyDeskRoute
   '/procurement': typeof ProcurementRoute
   '/quality': typeof QualityRoute
+  '/sourcing': typeof SourcingRouteWithChildren
+  '/sourcing/developments': typeof SourcingDevelopmentsRoute
+  '/sourcing/': typeof SourcingIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -70,6 +91,8 @@ export interface FileRoutesByTo {
   '/my-desk': typeof MyDeskRoute
   '/procurement': typeof ProcurementRoute
   '/quality': typeof QualityRoute
+  '/sourcing/developments': typeof SourcingDevelopmentsRoute
+  '/sourcing': typeof SourcingIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -80,6 +103,9 @@ export interface FileRoutesById {
   '/my-desk': typeof MyDeskRoute
   '/procurement': typeof ProcurementRoute
   '/quality': typeof QualityRoute
+  '/sourcing': typeof SourcingRouteWithChildren
+  '/sourcing/developments': typeof SourcingDevelopmentsRoute
+  '/sourcing/': typeof SourcingIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -91,6 +117,9 @@ export interface FileRouteTypes {
     | '/my-desk'
     | '/procurement'
     | '/quality'
+    | '/sourcing'
+    | '/sourcing/developments'
+    | '/sourcing/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -100,6 +129,8 @@ export interface FileRouteTypes {
     | '/my-desk'
     | '/procurement'
     | '/quality'
+    | '/sourcing/developments'
+    | '/sourcing'
   id:
     | '__root__'
     | '/'
@@ -109,6 +140,9 @@ export interface FileRouteTypes {
     | '/my-desk'
     | '/procurement'
     | '/quality'
+    | '/sourcing'
+    | '/sourcing/developments'
+    | '/sourcing/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -119,6 +153,7 @@ export interface RootRouteChildren {
   MyDeskRoute: typeof MyDeskRoute
   ProcurementRoute: typeof ProcurementRoute
   QualityRoute: typeof QualityRoute
+  SourcingRoute: typeof SourcingRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
@@ -172,8 +207,43 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof QualityRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/sourcing': {
+      id: '/sourcing'
+      path: '/sourcing'
+      fullPath: '/sourcing'
+      preLoaderRoute: typeof SourcingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sourcing/': {
+      id: '/sourcing/'
+      path: '/'
+      fullPath: '/sourcing/'
+      preLoaderRoute: typeof SourcingIndexRouteImport
+      parentRoute: typeof SourcingRoute
+    }
+    '/sourcing/developments': {
+      id: '/sourcing/developments'
+      path: '/developments'
+      fullPath: '/sourcing/developments'
+      preLoaderRoute: typeof SourcingDevelopmentsRouteImport
+      parentRoute: typeof SourcingRoute
+    }
   }
 }
+
+interface SourcingRouteChildren {
+  SourcingDevelopmentsRoute: typeof SourcingDevelopmentsRoute
+  SourcingIndexRoute: typeof SourcingIndexRoute
+}
+
+const SourcingRouteChildren: SourcingRouteChildren = {
+  SourcingDevelopmentsRoute: SourcingDevelopmentsRoute,
+  SourcingIndexRoute: SourcingIndexRoute,
+}
+
+const SourcingRouteWithChildren = SourcingRoute._addFileChildren(
+  SourcingRouteChildren,
+)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
@@ -183,6 +253,7 @@ const rootRouteChildren: RootRouteChildren = {
   MyDeskRoute: MyDeskRoute,
   ProcurementRoute: ProcurementRoute,
   QualityRoute: QualityRoute,
+  SourcingRoute: SourcingRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
