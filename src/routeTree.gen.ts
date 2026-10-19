@@ -19,6 +19,7 @@ import { Route as QualityRouteImport } from './routes/quality'
 import { Route as SourcingRouteImport } from './routes/sourcing'
 import { Route as SourcingIndexRouteImport } from './routes/sourcing.index'
 import { Route as SourcingDevelopmentsRouteImport } from './routes/sourcing.developments'
+import { Route as SourcingDevelopmentsIdRouteImport } from './routes/sourcing.developments_.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -70,6 +71,11 @@ const SourcingDevelopmentsRoute = SourcingDevelopmentsRouteImport.update({
   path: '/developments',
   getParentRoute: () => SourcingRoute,
 } as any)
+const SourcingDevelopmentsIdRoute = SourcingDevelopmentsIdRouteImport.update({
+  id: '/developments_/$id',
+  path: '/developments/$id',
+  getParentRoute: () => SourcingRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -82,6 +88,7 @@ export interface FileRoutesByFullPath {
   '/sourcing': typeof SourcingRouteWithChildren
   '/sourcing/developments': typeof SourcingDevelopmentsRoute
   '/sourcing/': typeof SourcingIndexRoute
+  '/sourcing/developments/$id': typeof SourcingDevelopmentsIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -93,6 +100,7 @@ export interface FileRoutesByTo {
   '/quality': typeof QualityRoute
   '/sourcing/developments': typeof SourcingDevelopmentsRoute
   '/sourcing': typeof SourcingIndexRoute
+  '/sourcing/developments/$id': typeof SourcingDevelopmentsIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -106,6 +114,7 @@ export interface FileRoutesById {
   '/sourcing': typeof SourcingRouteWithChildren
   '/sourcing/developments': typeof SourcingDevelopmentsRoute
   '/sourcing/': typeof SourcingIndexRoute
+  '/sourcing/developments_/$id': typeof SourcingDevelopmentsIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -120,6 +129,7 @@ export interface FileRouteTypes {
     | '/sourcing'
     | '/sourcing/developments'
     | '/sourcing/'
+    | '/sourcing/developments/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -131,6 +141,7 @@ export interface FileRouteTypes {
     | '/quality'
     | '/sourcing/developments'
     | '/sourcing'
+    | '/sourcing/developments/$id'
   id:
     | '__root__'
     | '/'
@@ -143,6 +154,7 @@ export interface FileRouteTypes {
     | '/sourcing'
     | '/sourcing/developments'
     | '/sourcing/'
+    | '/sourcing/developments_/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -228,17 +240,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SourcingDevelopmentsRouteImport
       parentRoute: typeof SourcingRoute
     }
+    '/sourcing/developments_/$id': {
+      id: '/sourcing/developments_/$id'
+      path: '/developments/$id'
+      fullPath: '/sourcing/developments/$id'
+      preLoaderRoute: typeof SourcingDevelopmentsIdRouteImport
+      parentRoute: typeof SourcingRoute
+    }
   }
 }
 
 interface SourcingRouteChildren {
   SourcingDevelopmentsRoute: typeof SourcingDevelopmentsRoute
   SourcingIndexRoute: typeof SourcingIndexRoute
+  SourcingDevelopmentsIdRoute: typeof SourcingDevelopmentsIdRoute
 }
 
 const SourcingRouteChildren: SourcingRouteChildren = {
   SourcingDevelopmentsRoute: SourcingDevelopmentsRoute,
   SourcingIndexRoute: SourcingIndexRoute,
+  SourcingDevelopmentsIdRoute: SourcingDevelopmentsIdRoute,
 }
 
 const SourcingRouteWithChildren = SourcingRoute._addFileChildren(
