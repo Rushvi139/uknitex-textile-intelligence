@@ -1,14 +1,31 @@
 import { createContext, useContext, useState, type ReactNode } from "react";
 
+export type SupplierColourTrack = {
+  supplier: string;
+  stage: string;
+  ratePerKg: string;
+  costSheetStatus: string;
+  sampleNo: string;
+  feedback: string;
+  proof: string[];
+};
+
+export type DevelopmentColour = {
+  name: string;
+  status: string;
+  sampleNo: string;
+  supplierTracks: SupplierColourTrack[];
+};
+
 export type Development = {
   id: string; title: string; category: string; collection: string; status: string;
-  suppliers: string[]; samples: number; colours: { name: string; status: string; sampleNo: string }[];
+  suppliers: string[]; samples: number; colours: DevelopmentColour[];
   notes: string[]; documents: string[];
 };
 
 // Screenshot-backed reference records, never production data or database writes.
 const initial: Development[] = [
-  { id: "PD-2026-0005", title: "YARN DYED SWEATER KNIT STRIPER", category: "STRIPER", collection: "AW-27", status: "Samples approved", suppliers: ["BHUMIT INTERNATIONAL"], samples: 2, colours: [{ name: "Black", status: "Approved", sampleNo: "SS-2026-0001" }, { name: "Grey", status: "Rejected", sampleNo: "SS-2026-0002" }], notes: [], documents: [] },
+  { id: "PD-2026-0005", title: "YARN DYED SWEATER KNIT STRIPER", category: "STRIPER", collection: "AW-27", status: "Samples approved", suppliers: ["BHUMIT INTERNATIONAL"], samples: 2, colours: [{ name: "Black", status: "Approved", sampleNo: "SS-2026-0001", supplierTracks: [{ supplier: "BHUMIT INTERNATIONAL", stage: "Approved", ratePerKg: "", costSheetStatus: "Not received", sampleNo: "SS-2026-0001", feedback: "", proof: [] }] }, { name: "Grey", status: "Rejected", sampleNo: "SS-2026-0002", supplierTracks: [{ supplier: "BHUMIT INTERNATIONAL", stage: "Rejected", ratePerKg: "", costSheetStatus: "Not received", sampleNo: "SS-2026-0002", feedback: "", proof: [] }] }], notes: [], documents: [] },
   { id: "PD-2026-0004", title: "Lycra", category: "PLAIN", collection: "Winter 26", status: "Samples pending", suppliers: ["BHUMIT INTERNATIONAL", "Krunal", "ki"], samples: 0, colours: [], notes: [], documents: [] },
 ];
 
