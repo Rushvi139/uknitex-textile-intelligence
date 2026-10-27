@@ -37,8 +37,8 @@ function Developments() {
   const [query, setQuery] = useState("");
   const [view, setView] = useState("all");
 
-  const rows: Row[] = developments.flatMap((dev) =>
-    dev.colours.flatMap((colour) =>
+  const rows: Row[] = developments.flatMap((dev): Row[] =>
+    dev.colours.flatMap((colour): Row[] =>
       colour.supplierTracks.length
         ? colour.supplierTracks.map((track) => ({ dev, colour, track }))
         : [{ dev, colour, track: null }],
