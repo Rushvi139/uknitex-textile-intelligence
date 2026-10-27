@@ -5,7 +5,7 @@ import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/compone
 import { Pill } from "@/components/erp/primitives";
 
 const processes = ["Heatset", "Dyeing light shade", "Washing", "Biowash", "Silicon", "Raising", "Fur process", "Gold finish normal", "Gold finish dry to wet", "Compaction", "Mercerising process", "Printing process", "Sueding process"];
-export function CostSheetReference({ open, onOpenChange, onSaved, colourName, supplierName }: { open: boolean; onOpenChange: (open: boolean) => void; onSaved: (approved: boolean) => void; colourName?: string; supplierName?: string }) {
+export function CostSheetReference({ open, onOpenChange, onSaved, colourName, supplierName }: { open: boolean; onOpenChange: (open: boolean) => void; onSaved: (approved: boolean) => void; colourName?: string | undefined; supplierName?: string | undefined }) {
   const [values, setValues] = useState<Record<string, string>>({ "Knitting shortage %": "1" });
   const [saved, setSaved] = useState(false);
   const field = (label: string, numeric = true) => <label key={label} className="block min-w-0 text-xs font-medium text-muted-foreground">{label}<input aria-label={label} value={values[label] ?? ""} onChange={(e) => { setValues((v) => ({ ...v, [label]: e.target.value })); setSaved(false); }} type={numeric ? "number" : "text"} min={numeric ? "0" : undefined} step={numeric ? "any" : undefined} className="reference-input mt-1" /></label>;
