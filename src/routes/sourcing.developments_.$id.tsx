@@ -1,12 +1,13 @@
-import { useState, type FormEvent } from "react";
+import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowLeft, Check, FileText, ImagePlus, Paperclip, Plus, X } from "lucide-react";
+import { ArrowLeft, Check, FileText, ImagePlus, MessageSquarePlus, Paperclip, Plus } from "lucide-react";
 import { AppShell } from "@/components/erp/AppShell";
 import { ModuleNav } from "@/components/erp/ModuleNav";
 import { Button } from "@/components/ui/button";
-import { Pill } from "@/components/erp/primitives";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Pill, Th, Td } from "@/components/erp/primitives";
 import { CostSheetReference } from "@/components/erp/CostSheetReference";
-import { useSourcing, type DevelopmentColour, type SupplierColourTrack } from "@/lib/sourcing-reference";
+import { useSourcing, type SupplierColourTrack } from "@/lib/sourcing-reference";
 
 export const Route = createFileRoute("/sourcing/developments_/$id")({
   head: ({ params }) => ({ meta: [{ title: `${params.id} — UKNITEX Development` }, { name: "description", content: "Current status and full history of a fabric development, colour by colour and supplier by supplier." }, { property: "og:title", content: `UKNITEX Development ${params.id}` }, { property: "og:description", content: "What has happened and what needs a decision now." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary_large_image" }] }),
@@ -15,57 +16,68 @@ export const Route = createFileRoute("/sourcing/developments_/$id")({
 
 const STAGES = ["Requirement ready", "Costing requested", "Cost received", "Cost accepted", "Sample requested", "Sample received", "Feedback due", "Approved", "Rejected"];
 const stageTone = (stage: string) => (stage === "Approved" || stage === "Cost accepted" ? "success" : stage === "Rejected" ? "danger" : stage === "Feedback due" ? "warn" : "info");
+const emptyTrack = (supplier: string): SupplierColourTrack => ({ supplier, stage: "Requirement ready", ratePerKg: "", costSheetStatus: "Not requested", sampleNo: "—", feedback: "", proof: [] });
 
 function DevelopmentDetail() {
   const { id } = Route.useParams();
   const { developments, update } = useSourcing();
   const d = developments.find((row) => row.id === id);
-  const [supplier, setSupplier] = useState("");
-  const [colour, setColour] = useState("");
-  const [note, setNote] = useState("");
-  const [visible, setVisible] = useState(true);
-  const [followUp, setFollowUp] = useState("");
   const [costTarget, setCostTarget] = useState<{ colour: string; supplier: string } | null>(null);
+  const [remarkTarget, setRemarkTarget] = useState<{ colour: string; supplier: string } | null>(null);
+  const [remarkOpen, setRemarkOpen] = useState(false);
+  const [supplierOpen, setSupplierOpen] = useState(false);
+  const [colourOpen, setColourOpen] = useState(false);
   const [trailFilter, setTrailFilter] = useState("All");
+  // Remark pop-up state
+  const [remarkText, setRemarkText] = useState("");
+  const [remarkVisible, setRemarkVisible] = useState(true);
+  const [remarkFollowUp, setRemarkFollowUp] = useState("");
+  // Supplier / colour pop-up state
+  const [supplierName, setSupplierName] = useState("");
+  const [colourName, setColourName] = useState("");
 
   if (!d) return <AppShell breadcrumb={["Sourcing", "Development"]}><h1 className="text-2xl font-semibold">Development not in this reference</h1><Button className="mt-4" asChild><Link to="/sourcing/developments">Back to the tracker</Link></Button></AppShell>;
 
-  const saveColour = (colourName: string, change: Partial<DevelopmentColour>) => update(id, { colours: d.colours.map((item) => item.name === colourName ? { ...item, ...change } : item) });
   const updateTrack = (colourName: string, supplierName: string, change: Partial<SupplierColourTrack>) => update(id, { colours: d.colours.map((item) => item.name === colourName ? { ...item, supplierTracks: item.supplierTracks.map((track) => track.supplier === supplierName ? { ...track, ...change } : track) } : item) });
-  const addSupplier = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const name = supplier.trim();
-    if (!name) return;
-    const nextColours = d.colours.map((item) => ({ ...item, supplierTracks: item.supplierTracks.some((track) => track.supplier === name) ? item.supplierTracks : [...item.supplierTracks, { supplier: name, stage: "Requirement ready", ratePerKg: "", costSheetStatus: "Not requested", sampleNo: "—", feedback: "", proof: [] }] }));
-    update(id, { suppliers: d.suppliers.includes(name) ? d.suppliers : [...d.suppliers, name], colours: nextColours });
-    setSupplier("");
-  };
-  const addColour = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const name = colour.trim();
-    if (!name || d.colours.some((item) => item.name.toLowerCase() === name.toLowerCase())) return;
-    const supplierTracks = d.suppliers.map((supplierName) => ({ supplier: supplierName, stage: "Requirement ready", ratePerKg: "", costSheetStatus: "Not requested", sampleNo: "—", feedback: "", proof: [] }));
-    update(id, { colours: [...d.colours, { name, status: "Not requested", sampleNo: "—", supplierTracks }] });
-    setColour("");
-  };
-  const addTrackSupplier = (colourName: string, supplierName: string) => {
+
+  const addSupplier = () => {
     const name = supplierName.trim();
-    if (!name) return;
-    const item = d.colours.find((entry) => entry.name === colourName);
-    if (!item || item.supplierTracks.some((track) => track.supplier.toLowerCase() === name.toLowerCase())) return;
-    update(id, { suppliers: d.suppliers.some((value) => value.toLowerCase() === name.toLowerCase()) ? d.suppliers : [...d.suppliers, name], colours: d.colours.map((entry) => entry.name === colourName ? { ...entry, supplierTracks: [...entry.supplierTracks, { supplier: name, stage: "Requirement ready", ratePerKg: "", costSheetStatus: "Not requested", sampleNo: "—", feedback: "", proof: [] }] } : entry) });
+    if (!name || d.suppliers.some((value) => value.toLowerCase() === name.toLowerCase())) return;
+    update(id, { suppliers: [...d.suppliers, name], colours: d.colours.map((item) => ({ ...item, supplierTracks: item.supplierTracks.some((track) => track.supplier.toLowerCase() === name.toLowerCase()) ? item.supplierTracks : [...item.supplierTracks, emptyTrack(name)] })) });
+    setSupplierName("");
+    setSupplierOpen(false);
+  };
+  const addColour = () => {
+    const name = colourName.trim();
+    if (!name || d.colours.some((item) => item.name.toLowerCase() === name.toLowerCase())) return;
+    update(id, { colours: [...d.colours, { name, status: "Not requested", sampleNo: "—", supplierTracks: d.suppliers.map(emptyTrack) }] });
+    setColourName("");
+    setColourOpen(false);
+  };
+  const addRemark = () => {
+    const text = remarkText.trim();
+    if (!text) return;
+    update(id, { notes: [...d.notes, `${remarkVisible ? "Team" : "Private"} · ${text}${remarkFollowUp ? ` · Follow-up ${remarkFollowUp}` : ""}`] });
+    setRemarkText("");
+    setRemarkFollowUp("");
+    setRemarkOpen(false);
+  };
+  const saveTrackRemark = () => {
+    if (!remarkTarget) return;
+    const { colour, supplier } = remarkTarget;
+    const text = remarkText.trim();
+    updateTrack(colour, supplier, { feedback: text });
+    if (text) update(id, { notes: [...d.notes, `Remark · ${colour} · ${supplier} · ${text}`] });
+    setRemarkTarget(null);
+    setRemarkText("");
+  };
+  const askSample = (colour: string, track: SupplierColourTrack) => {
+    updateTrack(colour, track.supplier, { stage: "Sample requested", sampleNo: track.sampleNo === "—" ? `SS-REF-${String(d.samples + 1).padStart(4, "0")}` : track.sampleNo });
+    update(id, { samples: d.samples + 1, notes: [...d.notes, `Sample requested · ${colour} · ${track.supplier}`], colours: d.colours.map((item) => item.name === colour ? { ...item, status: "Sampling" } : item) });
   };
 
   const approvedTracks = d.colours.reduce((sum, item) => sum + item.supplierTracks.filter((track) => track.stage === "Approved" || track.stage === "Cost accepted").length, 0);
   const pendingDecisions = d.colours.reduce((sum, item) => sum + item.supplierTracks.filter((track) => track.stage === "Feedback due").length, 0);
-
-  const addNote = () => {
-    const text = note.trim();
-    if (!text) return;
-    update(id, { notes: [...d.notes, `${visible ? "Team" : "Private"} · ${text}${followUp ? ` · Follow-up ${followUp}` : ""}`] });
-    setNote("");
-    setFollowUp("");
-  };
 
   return <AppShell breadcrumb={["Sourcing", d.id]}><ModuleNav active="developments" /><Link to="/sourcing/developments" className="inline-flex items-center gap-2 text-xs text-muted-foreground"><ArrowLeft className="size-3" />Stage tracker</Link>
 
@@ -73,29 +85,37 @@ function DevelopmentDetail() {
       <div className="mt-3 flex flex-wrap gap-1.5 text-[11px]">{[`${d.samples} samples asked`, `${approvedTracks} approved`, `${pendingDecisions} decisions waiting`, `${d.documents.length} papers`].map((chip) => <span key={chip} className="rounded-sm border border-border bg-surface px-2 py-1 text-muted-foreground">{chip}</span>)}</div>
     </header>
 
-    <section aria-label="Suppliers on this development" className="mb-5"><div className="flex flex-wrap items-center gap-1.5">{d.suppliers.map((name) => <span key={name} className="inline-flex items-center gap-1.5 rounded-sm border border-border bg-surface px-2 py-1 text-xs font-medium">{name}<button type="button" aria-label={`Remove ${name}`} onClick={() => { update(id, { suppliers: d.suppliers.filter((value) => value !== name), colours: d.colours.map((item) => ({ ...item, supplierTracks: item.supplierTracks.filter((track) => track.supplier !== name) })) }); }}><X className="size-3 text-muted-foreground" /></button></span>)}{d.suppliers.length === 0 && <span className="text-xs text-muted-foreground">No supplier linked yet.</span>}</div>
-      <form className="mt-2 flex gap-2" onSubmit={addSupplier}><input aria-label="New supplier" className="reference-input" placeholder="Add a mill or supplier…" value={supplier} onChange={(e) => setSupplier(e.target.value)} /><Button variant="outline" type="submit" size="icon" aria-label="Add supplier" disabled={!supplier.trim()}><Plus /></Button></form>
-    </section>
-
-    <section aria-label="Where things stand" className="mb-6"><h2 className="text-base font-semibold">Where things stand</h2><p className="mt-1 text-xs text-muted-foreground">Every colour moves on its own; each supplier answers separately.</p>
-      <div className="mt-3 divide-y divide-border border-y border-border">{d.colours.map((c) => <article key={c.name} className="py-3">
-        <div className="flex flex-wrap items-center gap-2"><h3 className="text-sm font-semibold">{c.name}</h3><Pill tone={c.status === "Approved" ? "success" : c.status === "Rejected" ? "danger" : "warn"}>{c.status}</Pill><Button className="ml-auto" variant="outline" size="sm" disabled={c.supplierTracks.length === 0} onClick={() => { update(id, { samples: d.samples + c.supplierTracks.length, colours: d.colours.map((item) => item.name === c.name ? { ...item, status: "Sampling", supplierTracks: item.supplierTracks.map((track) => ({ ...track, stage: track.stage === "Approved" || track.stage === "Rejected" ? track.stage : "Sample requested", sampleNo: track.sampleNo === "—" ? `SS-REF-${String(d.samples + 1).padStart(4, "0")}` : track.sampleNo })) } : item), notes: [...d.notes, `Sample requested · ${c.name} · ${c.supplierTracks.length} suppliers`] }); }}><Plus />Ask samples</Button></div>
-        {c.supplierTracks.length === 0 ? <p className="mt-2 border-l-2 border-border pl-3 text-xs text-muted-foreground">No supplier assigned for this colour yet — add one below.</p>
-          : <div className="mt-2 space-y-2">{c.supplierTracks.map((track) => <TrackRow key={track.supplier} colour={c} track={track} onUpdate={(change) => updateTrack(c.name, track.supplier, change)} onCostSheet={() => setCostTarget({ colour: c.name, supplier: track.supplier })} onAskSample={() => { updateTrack(c.name, track.supplier, { stage: "Sample requested", sampleNo: `SS-REF-${String(d.samples + 1).padStart(4, "0")}` }); saveColour(c.name, { status: "Sampling" }); update(id, { samples: d.samples + 1, notes: [...d.notes, `Sample requested · ${c.name} · ${track.supplier}`] }); }} onProof={(file) => updateTrack(c.name, track.supplier, { proof: [...track.proof, file] })} />)}</div>}
-        <form className="mt-2 flex gap-2" onSubmit={(event) => { event.preventDefault(); const data = new FormData(event.currentTarget); addTrackSupplier(c.name, String(data.get("supplier") ?? "")); event.currentTarget.reset(); }}><input name="supplier" aria-label={`Supplier for ${c.name}`} className="reference-input min-w-0 flex-1" placeholder={`Add supplier for ${c.name}…`} /><Button variant="outline" size="sm" type="submit"><Plus />Assign</Button></form>
-      </article>)}</div>
-      <form className="mt-3 flex gap-2" onSubmit={addColour}><input className="reference-input" aria-label="New colour" placeholder="Add a colour, e.g. Navy…" value={colour} onChange={(e) => setColour(e.target.value)} /><Button variant="outline" size="icon" aria-label="Add colour" disabled={!colour.trim() || d.colours.some((item) => item.name.toLowerCase() === colour.trim().toLowerCase())}><Plus /></Button></form>
-    </section>
-
-    <section aria-label="What has happened" className="mb-6"><div className="flex flex-wrap items-center justify-between gap-2"><h2 className="text-base font-semibold">What has happened</h2><div className="flex">{["All", "Notes", "Changes"].map((tab) => <Button key={tab} size="sm" variant={trailFilter === tab ? "secondary" : "ghost"} onClick={() => setTrailFilter(tab)}>{tab}</Button>)}</div></div>
+    <section aria-label="What has happened" className="mb-6"><div className="flex flex-wrap items-center justify-between gap-2"><h2 className="text-base font-semibold">What has happened</h2><div className="flex items-center gap-1.5">{["All", "Notes", "Changes"].map((tab) => <Button key={tab} size="sm" variant={trailFilter === tab ? "secondary" : "ghost"} onClick={() => setTrailFilter(tab)}>{tab}</Button>)}<Button size="sm" onClick={() => { setRemarkText(""); setRemarkVisible(true); setRemarkFollowUp(""); setRemarkOpen(true); }}><MessageSquarePlus />Add remark</Button></div></div>
       <div className="divide-y divide-border border-y border-border">
         {trailFilter !== "Changes" && d.notes.map((n, i) => <p key={`note-${i}`} className="py-2.5 text-xs">{n}</p>)}
         {trailFilter !== "Notes" && <p className="py-2.5 text-xs text-muted-foreground">Concept created · Demo Owner · 09 Oct 2026</p>}
         {trailFilter !== "Changes" && d.notes.length === 0 && <p className="py-2.5 text-xs text-muted-foreground">Nothing noted yet — team updates will appear here.</p>}
       </div>
-      <form className="mt-3" onSubmit={(event) => { event.preventDefault(); addNote(); }}><input aria-label="Development note" className="reference-input" placeholder="What was said, decided or asked…" value={note} onChange={(e) => setNote(e.target.value)} />
-        <div className="mt-2 flex flex-wrap items-center gap-3"><label className="flex items-center gap-1.5 text-[11px] text-muted-foreground"><input type="checkbox" checked={visible} onChange={(e) => setVisible(e.target.checked)} className="size-3.5" />Visible to team</label><input aria-label="Follow-up date" type="date" className="reference-input w-auto text-xs" value={followUp} onChange={(e) => setFollowUp(e.target.value)} /><Button className="ml-auto" size="sm" disabled={!note.trim()}><Check />Add note</Button></div>
-      </form>
+    </section>
+
+    <section aria-label="Where things stand" className="mb-6"><div className="flex flex-wrap items-center justify-between gap-2"><div><h2 className="text-base font-semibold">Where things stand</h2><p className="mt-1 text-xs text-muted-foreground">Every colour moves on its own; each supplier answers separately.</p></div>
+      <div className="flex gap-1.5"><Button variant="outline" size="sm" onClick={() => { setSupplierName(""); setSupplierOpen(true); }}><Plus />Supplier</Button><Button variant="outline" size="sm" onClick={() => { setColourName(""); setColourOpen(true); }}><Plus />Colour</Button></div>
+    </div>
+      <div className="mt-3 overflow-x-auto border-y border-border">
+        <table className="w-full min-w-[820px] text-left"><thead><tr><Th>Colour · Supplier</Th><Th>Stage</Th><Th>Rate / kg</Th><Th>Sample</Th><Th>Cost sheet</Th><Th className="text-right">Actions</Th></tr></thead>
+          <tbody>
+            {d.colours.flatMap((c) => c.supplierTracks.length === 0
+              ? [<tr key={`empty-${c.name}`}><Td colSpan={6} className="text-xs text-muted-foreground">No supplier assigned for {c.name} yet — use + Supplier above.</Td></tr>]
+              : c.supplierTracks.map((track) => <tr key={`${c.name}-${track.supplier}`} className="hover:bg-surface-sunken/40">
+                <Td><p className="flex items-center gap-1.5 text-[13px] font-semibold">{c.name}<Pill tone={c.status === "Approved" ? "success" : c.status === "Rejected" ? "danger" : "warn"}>{c.status}</Pill></p><p className="text-[11px] text-muted-foreground">{track.supplier}{track.feedback ? ` · ${track.feedback}` : ""}</p></Td>
+                <Td><select aria-label={`${c.name} ${track.supplier} stage`} value={track.stage} onChange={(event) => updateTrack(c.name, track.supplier, { stage: event.target.value })} className="reference-input w-40 text-xs">{STAGES.map((stage) => <option key={stage}>{stage}</option>)}</select></Td>
+                <Td><input aria-label={`${c.name} ${track.supplier} rate per kg`} type="number" min="0" step="any" placeholder="Not quoted" value={track.ratePerKg} onChange={(event) => updateTrack(c.name, track.supplier, { ratePerKg: event.target.value })} className="reference-input w-24 text-xs" /></Td>
+                <Td className="num text-xs text-muted-foreground">{track.sampleNo}{track.proof.length > 0 ? ` · ${track.proof.length} proof` : ""}</Td>
+                <Td className="text-xs">{track.costSheetStatus}</Td>
+                <Td className="text-right"><div className="flex justify-end gap-1">
+                  <Button variant="outline" size="sm" onClick={() => setCostTarget({ colour: c.name, supplier: track.supplier })}><FileText />Cost</Button>
+                  <Button variant="ghost" size="sm" onClick={() => askSample(c.name, track)}><Plus />Sample</Button>
+                  <Button variant="ghost" size="sm" onClick={() => { setRemarkText(track.feedback); setRemarkTarget({ colour: c.name, supplier: track.supplier }); }}><MessageSquarePlus />Remark</Button>
+                </div></Td>
+              </tr>))}
+          </tbody>
+        </table>
+      </div>
     </section>
 
     <details className="mb-6 border-y border-border" aria-label="Papers and proof"><summary className="flex cursor-pointer items-center gap-2 py-3 text-sm font-semibold"><Paperclip className="size-4 text-muted-foreground" />Papers &amp; proof<span className="num ml-auto text-xs text-muted-foreground">{d.documents.length}</span></summary>
@@ -104,20 +124,36 @@ function DevelopmentDetail() {
       <label className="mb-3 inline-flex cursor-pointer items-center gap-2 rounded-sm border border-border px-3 py-2 text-xs font-medium"><ImagePlus className="size-3.5" />Attach photo or document<input type="file" className="sr-only" onChange={(e) => { const file = e.target.files?.[0]; if (file) update(id, { documents: [...d.documents, file.name] }); }} /></label>
     </details>
 
+    {/* Development remark pop-up */}
+    <Dialog open={remarkOpen} onOpenChange={setRemarkOpen}><DialogContent className="max-w-md"><DialogHeader><DialogTitle>Add a remark</DialogTitle><DialogDescription>What was said, decided or asked.</DialogDescription></DialogHeader>
+      <form onSubmit={(event) => { event.preventDefault(); addRemark(); }}>
+        <textarea aria-label="Remark" className="reference-input min-h-24 w-full" placeholder="What was said, decided or asked…" value={remarkText} onChange={(e) => setRemarkText(e.target.value)} />
+        <div className="mt-3 flex flex-wrap items-center gap-3 text-[11px] text-muted-foreground"><label className="flex items-center gap-1.5"><input type="checkbox" checked={remarkVisible} onChange={(e) => setRemarkVisible(e.target.checked)} className="size-3.5" />Visible to team</label><input aria-label="Follow-up date" type="date" className="reference-input w-auto text-xs" value={remarkFollowUp} onChange={(e) => setRemarkFollowUp(e.target.value)} /></div>
+        <DialogFooter className="mt-4"><Button type="button" variant="ghost" onClick={() => setRemarkOpen(false)}>Cancel</Button><Button type="submit" disabled={!remarkText.trim()}><Check />Add remark</Button></DialogFooter>
+      </form>
+    </DialogContent></Dialog>
+
+    {/* Add supplier pop-up */}
+    <Dialog open={supplierOpen} onOpenChange={setSupplierOpen}><DialogContent className="max-w-sm"><DialogHeader><DialogTitle>Add a supplier</DialogTitle><DialogDescription>They get their own track under every colour.</DialogDescription></DialogHeader>
+      <form onSubmit={(event) => { event.preventDefault(); addSupplier(); }}><input aria-label="Supplier name" className="reference-input w-full" placeholder="Mill or supplier name…" value={supplierName} onChange={(e) => setSupplierName(e.target.value)} />
+        <DialogFooter className="mt-4"><Button type="button" variant="ghost" onClick={() => setSupplierOpen(false)}>Cancel</Button><Button type="submit" disabled={!supplierName.trim()}><Plus />Add supplier</Button></DialogFooter>
+      </form>
+    </DialogContent></Dialog>
+
+    {/* Add colour pop-up */}
+    <Dialog open={colourOpen} onOpenChange={setColourOpen}><DialogContent className="max-w-sm"><DialogHeader><DialogTitle>Add a colour</DialogTitle><DialogDescription>Every linked supplier gets a track under it.</DialogDescription></DialogHeader>
+      <form onSubmit={(event) => { event.preventDefault(); addColour(); }}><input aria-label="Colour name" className="reference-input w-full" placeholder="Colour, e.g. Navy…" value={colourName} onChange={(e) => setColourName(e.target.value)} />
+        <DialogFooter className="mt-4"><Button type="button" variant="ghost" onClick={() => setColourOpen(false)}>Cancel</Button><Button type="submit" disabled={!colourName.trim()}><Plus />Add colour</Button></DialogFooter>
+      </form>
+    </DialogContent></Dialog>
+
+    {/* Supplier remark pop-up */}
+    <Dialog open={remarkTarget !== null} onOpenChange={(open) => { if (!open) { setRemarkTarget(null); setRemarkText(""); } }}><DialogContent className="max-w-md"><DialogHeader><DialogTitle>{remarkTarget ? `Remark — ${remarkTarget.colour} · ${remarkTarget.supplier}` : "Remark"}</DialogTitle><DialogDescription>What the supplier said or what your team decided.</DialogDescription></DialogHeader>
+      <form onSubmit={(event) => { event.preventDefault(); saveTrackRemark(); }}><textarea aria-label="Supplier remark" className="reference-input min-h-24 w-full" placeholder="What the supplier said…" value={remarkText} onChange={(e) => setRemarkText(e.target.value)} />
+        <DialogFooter className="mt-4"><Button type="button" variant="ghost" onClick={() => { setRemarkTarget(null); setRemarkText(""); }}>Cancel</Button><Button type="submit"><Check />Save remark</Button></DialogFooter>
+      </form>
+    </DialogContent></Dialog>
+
     <CostSheetReference open={costTarget !== null} onOpenChange={(open) => { if (!open) setCostTarget(null); }} colourName={costTarget?.colour} supplierName={costTarget?.supplier} onSaved={(approved) => { if (!costTarget) return; const target = costTarget; update(id, { colours: d.colours.map((item) => item.name === target.colour ? { ...item, supplierTracks: item.supplierTracks.map((track) => track.supplier === target.supplier ? { ...track, costSheetStatus: approved ? "Approved" : "Draft saved", stage: approved ? "Cost accepted" : track.stage } : track) } : item), notes: [...d.notes, `${approved ? "Cost sheet approved" : "Cost sheet draft saved"} · ${target.colour} · ${target.supplier}`] }); if (approved) setCostTarget(null); }} />
   </AppShell>;
-}
-
-function TrackRow({ colour, track, onUpdate, onCostSheet, onAskSample, onProof }: { colour: DevelopmentColour; track: SupplierColourTrack; onUpdate: (change: Partial<SupplierColourTrack>) => void; onCostSheet: () => void; onAskSample: () => void; onProof: (file: string) => void }) {
-  return <div className="border-l-2 border-primary/30 bg-surface-sunken/40 px-3 py-2.5">
-    <div className="flex flex-wrap items-center gap-2"><p className="text-[13px] font-semibold">{track.supplier}</p><Pill tone={stageTone(track.stage)}>{track.stage}</Pill>
-      <div className="ml-auto flex gap-1"><Button variant="outline" size="sm" onClick={onCostSheet}><FileText />Cost</Button><Button variant="ghost" size="sm" onClick={onAskSample}><Plus />Sample</Button></div></div>
-    <p className="mt-1 text-[11px] text-muted-foreground">Cost sheet: {track.costSheetStatus}{track.ratePerKg ? ` · ₹${track.ratePerKg}/kg` : ""}{track.sampleNo !== "—" ? ` · Sample ${track.sampleNo}` : ""}{track.proof.length > 0 ? ` · Proof: ${track.proof.join(", ")}` : ""}</p>
-    <div className="mt-2 grid gap-2 sm:grid-cols-[110px_110px_minmax(0,1fr)]">
-      <label className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">Rate / kg<input aria-label={`${colour.name} ${track.supplier} rate per kg`} type="number" min="0" step="any" value={track.ratePerKg} onChange={(event) => onUpdate({ ratePerKg: event.target.value })} className="reference-input mt-1" placeholder="Not quoted" /></label>
-      <label className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">Decision<select aria-label={`${colour.name} ${track.supplier} decision`} value={track.stage} onChange={(event) => onUpdate({ stage: event.target.value })} className="reference-input mt-1">{STAGES.map((stage) => <option key={stage}>{stage}</option>)}</select></label>
-      <label className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">Feedback<input aria-label={`${colour.name} ${track.supplier} feedback`} value={track.feedback} onChange={(event) => onUpdate({ feedback: event.target.value })} className="reference-input mt-1" placeholder="What the supplier said…" /></label>
-    </div>
-    <label className="mt-2 inline-flex cursor-pointer items-center gap-1.5 rounded-sm border border-border px-2 py-1.5 text-[11px] font-medium"><ImagePlus className="size-3" />Add proof<input type="file" accept="image/*,.pdf" className="sr-only" onChange={(event) => { const file = event.target.files?.[0]; if (file) onProof(file.name); }} /></label>
-  </div>;
 }
