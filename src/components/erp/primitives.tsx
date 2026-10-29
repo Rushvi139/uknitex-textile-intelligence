@@ -199,8 +199,8 @@ export function Th({ children, className }: { children?: ReactNode; className?: 
   );
 }
 
-export function Td({ children, className }: { children?: ReactNode; className?: string }) {
-  return <td className={cn("whitespace-nowrap border-b border-border px-3 py-2.5 text-sm", className)}>{children}</td>;
+export function Td({ children, className, colSpan }: { children?: ReactNode; className?: string; colSpan?: number }) {
+  return <td colSpan={colSpan} className={cn("whitespace-nowrap border-b border-border px-3 py-2.5 text-sm", className)}>{children}</td>;
 }
 
 export function PageHeader({
